@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Anime Circle</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Manrope:wght@400;500;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="hero">
+        <div class="hero__content">
+          <p class="eyebrow">Anime Circle</p>
+          <h1>Your friend group, one anime clubhouse.</h1>
+          <p class="hero__copy">
+            Sign up, log in, and share the anime you love most with your circle.
+            Everyone in the group can see each member's current favorite and the reason behind it.
+          </p>
+        </div>
+
+        <aside class="hero__card">
+          <p class="hero__label">Live Club Stats</p>
+          <div class="stat-row">
+            <span>Members</span>
+            <strong id="member-count">0</strong>
+          </div>
+          <div class="stat-row">
+            <span>Favorites shared</span>
+            <strong id="favorite-count">0</strong>
+          </div>
+          <p class="hero__note">
+            This version is built for real deployment with a cloud backend instead of local file storage.
+          </p>
+        </aside>
+      </header>
+
+      <main class="layout">
+        <section class="panel auth-panel">
+          <div class="panel__header">
+            <p class="panel__eyebrow">Auth</p>
+            <h2>Join the club</h2>
+          </div>
+
+          <div class="tabs">
+            <button class="tab-button is-active" data-tab="register">Create account</button>
+            <button class="tab-button" data-tab="login">Login</button>
+          </div>
+
+          <form id="register-form" class="auth-form">
+            <label>
+              Display name
+              <input name="displayName" type="text" maxlength="40" placeholder="Hinata" required />
+            </label>
+            <label>
+              Username
+              <input name="username" type="text" maxlength="24" placeholder="hinatafan" required />
+            </label>
+            <label>
+              Email
+              <input name="email" type="email" placeholder="hinata@example.com" required />
+            </label>
+            <label>
+              Password
+              <input name="password" type="password" minlength="6" placeholder="At least 6 characters" required />
+            </label>
+            <button type="submit" class="primary-button">Create account</button>
+          </form>
+
+          <form id="login-form" class="auth-form is-hidden">
+            <label>
+              Email
+              <input name="email" type="email" placeholder="hinata@example.com" required />
+            </label>
+            <label>
+              Password
+              <input name="password" type="password" minlength="6" placeholder="Your password" required />
+            </label>
+            <button type="submit" class="primary-button">Login</button>
+          </form>
+
+          <p id="auth-message" class="message" aria-live="polite"></p>
+        </section>
+
+        <section class="panel profile-panel">
+          <div class="panel__header">
+            <p class="panel__eyebrow">Your Pick</p>
+            <h2>Favorite anime</h2>
+          </div>
+
+          <div id="session-card" class="session-card is-logged-out">
+            <p class="session-card__title">Not logged in yet</p>
+            <p class="session-card__copy">
+              Sign in to add your favorite anime and see the shared club feed.
+            </p>
+          </div>
+
+          <form id="favorite-form" class="favorite-form">
+            <label>
+              Favorite anime
+              <input
+                name="favoriteAnime"
+                type="text"
+                maxlength="80"
+                placeholder="Fullmetal Alchemist: Brotherhood"
+                disabled
+                required
+              />
+            </label>
+            <label>
+              Why is it your favorite?
+              <textarea
+                name="animeReason"
+                maxlength="240"
+                placeholder="Say what makes it special for you..."
+                disabled
+              ></textarea>
+            </label>
+            <div class="action-row">
+              <button type="submit" class="primary-button" disabled>Save favorite</button>
+              <button id="logout-button" type="button" class="ghost-button" disabled>Logout</button>
+            </div>
+          </form>
+
+          <p id="favorite-message" class="message" aria-live="polite"></p>
+        </section>
+      </main>
+
+      <section class="panel members-panel">
+        <div class="panel__header">
+          <p class="panel__eyebrow">Friend Feed</p>
+          <h2>Club members and their anime picks</h2>
+        </div>
+        <div id="member-grid" class="member-grid"></div>
+      </section>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="./config.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>
