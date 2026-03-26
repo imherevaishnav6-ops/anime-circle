@@ -19,21 +19,6 @@ alter table public.profiles add column if not exists favorite_anime_mal_id integ
 
 alter table public.profiles enable row level security;
 
-create or replace view public.public_profiles as
-select
-  id,
-  username,
-  bio,
-  avatar_image_url,
-  favorite_anime,
-  favorite_anime_image_url,
-  favorite_anime_mal_id,
-  created_at,
-  updated_at
-from public.profiles;
-
-grant select on public.public_profiles to authenticated;
-
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
@@ -57,20 +42,13 @@ create trigger on_auth_user_created
 after insert on auth.users
 for each row execute procedure public.handle_new_user();
 
-drop policy if exists "profiles_select_for_authenticated_users" on public.profiles;
 drop policy if exists "profiles_select_own_row" on public.profiles;
 drop policy if exists "profiles_select_admin_row" on public.profiles;
-create policy "profiles_select_own_row"
+create policy "profiles_select_for_authenticated_users"
 on public.profiles
 for select
 to authenticated
-using (auth.uid() = id);
-
-create policy "profiles_select_admin_row"
-on public.profiles
-for select
-to authenticated
-using ((auth.jwt() ->> 'email') = 'cchowdary431@gmail.com');
+using (true);
 
 drop policy if exists "profiles_insert_own_row" on public.profiles;
 create policy "profiles_insert_own_row"

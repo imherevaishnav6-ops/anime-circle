@@ -249,6 +249,11 @@
       return;
     }
 
+    if (!data.session) {
+      showMessage(authMessage, "Login did not return a session. Try again.", true);
+      return;
+    }
+
     loginForm.reset();
     state.session = data.session;
     await loadProfileAndMembers();
@@ -384,7 +389,7 @@
 
   async function loadMembersOnly() {
     const result = await state.client
-      .from("public_profiles")
+      .from("profiles")
       .select("id, username, bio, avatar_image_url, favorite_anime, favorite_anime_image_url, favorite_anime_mal_id, created_at")
       .order("username", { ascending: true });
 
@@ -416,7 +421,7 @@
       .single();
 
     const membersQuery = state.client
-      .from("public_profiles")
+      .from("profiles")
       .select("id, username, bio, avatar_image_url, favorite_anime, favorite_anime_image_url, favorite_anime_mal_id, created_at")
       .order("username", { ascending: true });
     const adminQuery = state.isAdmin
@@ -520,7 +525,7 @@
     selectedAnime.innerHTML =
       '<p class="selected-anime__empty">No anime selected yet.</p>';
     animeSuggestions.innerHTML =
-      '<div class="empty-state">Type letters like "o" or "nar" to get anime suggestions.</div>';
+      '<div class="empty-state">Type letters like "o" or "nar" to get anime suggestions after login.</div>';
     sessionCard.className = "session-card session-card--empty";
     sessionCard.innerHTML = [
       '<p class="session-card__title">Not logged in yet</p>',
@@ -531,7 +536,7 @@
   function renderAnimeSuggestions() {
     if (!state.animeSuggestions.length) {
       animeSuggestions.innerHTML =
-        '<div class="empty-state">Type letters like "o" or "nar" to get anime suggestions.</div>';
+        '<div class="empty-state">Type letters like "o" or "nar" to get anime suggestions after login.</div>';
       return;
     }
 
