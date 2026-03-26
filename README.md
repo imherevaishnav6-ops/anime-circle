@@ -56,6 +56,8 @@ window.APP_CONFIG = {
 - The app now uses Jikan's public anime API for anime posters and character avatars. Jikan docs: [Jikan REST API Docs](https://docs.api.jikan.moe/)
 - Existing projects should re-run [supabase/schema.sql](C:\Users\vaishnav chowdary\OneDrive\Documents\New project\supabase\schema.sql) so the new bio, avatar, and poster columns are added.
 - Login session persistence is enabled, so users stay signed in after refresh unless they log out.
+- Anime search now suggests results while typing.
+- The current admin email is configured in [config.js](C:\Users\vaishnav chowdary\OneDrive\Documents\New project\config.js) and in [supabase/schema.sql](C:\Users\vaishnav chowdary\OneDrive\Documents\New project\supabase\schema.sql).
 
 ## Notes
 

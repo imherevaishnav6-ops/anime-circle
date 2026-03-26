@@ -5,6 +5,48 @@
     "https://cdn.myanimelist.net/images/anime/1015/138006.jpg",
     "https://cdn.myanimelist.net/images/anime/1935/127974.jpg",
   ];
+  const FALLBACK_AVATARS = [
+    {
+      id: 1,
+      name: "Monkey D. Luffy",
+      image: "https://cdn.myanimelist.net/images/characters/9/310307.jpg",
+    },
+    {
+      id: 2,
+      name: "Levi Ackerman",
+      image: "https://cdn.myanimelist.net/images/characters/2/241413.jpg",
+    },
+    {
+      id: 3,
+      name: "Itachi Uchiha",
+      image: "https://cdn.myanimelist.net/images/characters/11/284121.jpg",
+    },
+    {
+      id: 4,
+      name: "Killua Zoldyck",
+      image: "https://cdn.myanimelist.net/images/characters/11/215101.jpg",
+    },
+    {
+      id: 5,
+      name: "Gojo Satoru",
+      image: "https://cdn.myanimelist.net/images/characters/14/435481.jpg",
+    },
+    {
+      id: 6,
+      name: "Mikasa Ackerman",
+      image: "https://cdn.myanimelist.net/images/characters/9/215563.jpg",
+    },
+    {
+      id: 7,
+      name: "L Lawliet",
+      image: "https://cdn.myanimelist.net/images/characters/10/249703.jpg",
+    },
+    {
+      id: 8,
+      name: "Naruto Uzumaki",
+      image: "https://cdn.myanimelist.net/images/characters/6/284129.jpg",
+    },
+  ];
 
   const state = {
     activeTab: "register",
@@ -14,8 +56,11 @@
     members: [],
     avatarChoices: [],
     animeResults: [],
+    animeSuggestions: [],
     selectedAnime: null,
     feedQuery: "",
+    isAdmin: false,
+    adminProfiles: [],
   };
 
   const registerForm = document.querySelector("#register-form");
@@ -32,6 +77,7 @@
   const tabButtons = document.querySelectorAll(".tab-button");
   const avatarGrid = document.querySelector("#avatar-grid");
   const animeResults = document.querySelector("#anime-results");
+  const animeSuggestions = document.querySelector("#anime-suggestions");
   const selectedAnime = document.querySelector("#selected-anime");
   const animeSearchInput = document.querySelector("#anime-search-input");
   const animeSearchButton = document.querySelector("#anime-search-button");
@@ -41,6 +87,9 @@
   const heroChips = document.querySelector("#hero-chips");
   const memberSearch = document.querySelector("#member-search");
   const saveProfileButton = document.querySelector("#save-profile-button");
+  const adminPanel = document.querySelector("#admin-panel");
+  const adminGrid = document.querySelector("#admin-grid");
+  let animeSuggestionTimer = null;
 
   boot();
 
@@ -77,9 +126,12 @@
         state.profile = null;
         state.selectedAnime = null;
         state.members = [];
+        state.isAdmin = false;
+        state.adminProfiles = [];
         renderLoggedOut();
         renderMembers([]);
         renderStats([]);
+        renderAdminPanel();
         return;
       }
 
@@ -116,11 +168,13 @@
         handleAnimeSearch();
       }
     });
+    animeSearchInput.addEventListener("input", handleAnimeSuggest);
   }
 
   async function initializeSession() {
     const result = await state.client.auth.getSession();
     state.session = result.data.session;
+    state.isAdmin = isCurrentUserAdmin();
 
     if (state.session) {
       await loadProfileAndMembers();
@@ -273,6 +327,8 @@
       );
       const payload = await response.json();
       state.animeResults = Array.isArray(payload.data) ? payload.data : [];
+      state.animeSuggestions = state.animeResults.slice(0, 5);
+      renderAnimeSuggestions();
       renderAnimeResults();
       if (!state.animeResults.length) {
         showMessage(profileMessage, "No anime found for that search.", true);
@@ -305,10 +361,13 @@
         .filter(function (choice) {
           return choice.image;
         });
+      if (state.avatarChoices.length < 4) {
+        state.avatarChoices = FALLBACK_AVATARS;
+      }
       renderAvatarChoices();
     } catch {
-      state.avatarChoices = [];
-      avatarGrid.innerHTML = '<div class="empty-state">Could not load avatars right now.</div>';
+      state.avatarChoices = FALLBACK_AVATARS;
+      renderAvatarChoices();
     }
   }
 
@@ -325,7 +384,7 @@
 
   async function loadMembersOnly() {
     const result = await state.client
-      .from("profiles")
+      .from("public_profiles")
       .select("id, username, bio, avatar_image_url, favorite_anime, favorite_anime_image_url, favorite_anime_mal_id, created_at")
       .order("username", { ascending: true });
 
@@ -344,8 +403,11 @@
     if (!userId) {
       state.profile = null;
       state.members = [];
+      state.adminProfiles = [];
       return;
     }
+
+    state.isAdmin = isCurrentUserAdmin();
 
     const profileQuery = state.client
       .from("profiles")
@@ -354,11 +416,21 @@
       .single();
 
     const membersQuery = state.client
-      .from("profiles")
+      .from("public_profiles")
       .select("id, username, bio, avatar_image_url, favorite_anime, favorite_anime_image_url, favorite_anime_mal_id, created_at")
       .order("username", { ascending: true });
+    const adminQuery = state.isAdmin
+      ? state.client
+          .from("profiles")
+          .select("id, username, bio, avatar_image_url, favorite_anime, favorite_anime_image_url, favorite_anime_mal_id, created_at, updated_at")
+          .order("created_at", { ascending: false })
+      : Promise.resolve({ data: [], error: null });
 
-    const [profileResult, membersResult] = await Promise.all([profileQuery, membersQuery]);
+    const [profileResult, membersResult, adminResult] = await Promise.all([
+      profileQuery,
+      membersQuery,
+      adminQuery,
+    ]);
 
     if (profileResult.error) {
       showMessage(authMessage, profileResult.error.message, true);
@@ -373,6 +445,12 @@
       state.members = [];
     } else {
       state.members = membersResult.data || [];
+    }
+
+    if (adminResult.error) {
+      state.adminProfiles = [];
+    } else {
+      state.adminProfiles = adminResult.data || [];
     }
   }
 
@@ -422,6 +500,7 @@
     renderAnimeResults();
     renderMembers(state.members);
     renderStats(state.members);
+    renderAdminPanel();
   }
 
   function renderLoggedOut() {
@@ -440,11 +519,51 @@
     selectedAnime.className = "selected-anime is-empty";
     selectedAnime.innerHTML =
       '<p class="selected-anime__empty">No anime selected yet.</p>';
+    animeSuggestions.innerHTML =
+      '<div class="empty-state">Type letters like "o" or "nar" to get anime suggestions.</div>';
     sessionCard.className = "session-card session-card--empty";
     sessionCard.innerHTML = [
       '<p class="session-card__title">Not logged in yet</p>',
       '<p class="session-card__copy">Log in to set your avatar, write a bio, and choose your favorite anime with poster art.</p>',
     ].join("");
+  }
+
+  function renderAnimeSuggestions() {
+    if (!state.animeSuggestions.length) {
+      animeSuggestions.innerHTML =
+        '<div class="empty-state">Type letters like "o" or "nar" to get anime suggestions.</div>';
+      return;
+    }
+
+    animeSuggestions.innerHTML = state.animeSuggestions
+      .map(function (anime) {
+        const title = anime.title || anime.title_english || "Unknown title";
+        const image =
+          anime.images?.jpg?.image_url || anime.images?.webp?.image_url || "";
+        return [
+          '<button class="suggestion-card" type="button" data-anime-id="' + anime.mal_id + '">',
+          '<img src="' + escapeHtml(image) + '" alt="' + escapeHtml(title) + '" />',
+          "<div>",
+          '<p class="suggestion-card__title">' + escapeHtml(title) + "</p>",
+          '<p class="suggestion-card__meta">' + escapeHtml(String(anime.year || "Unknown year")) + "</p>",
+          "</div>",
+          "</button>",
+        ].join("");
+      })
+      .join("");
+
+    Array.from(animeSuggestions.querySelectorAll(".suggestion-card")).forEach(function (button) {
+      button.addEventListener("click", function () {
+        const animeId = Number(button.dataset.animeId);
+        const anime = state.animeSuggestions.find(function (entry) {
+          return entry.mal_id === animeId;
+        });
+        if (!anime) {
+          return;
+        }
+        applySelectedAnime(anime);
+      });
+    });
   }
 
   function renderAvatarChoices() {
@@ -531,16 +650,7 @@
         if (!anime) {
           return;
         }
-        state.selectedAnime = {
-          malId: anime.mal_id,
-          title: anime.title || anime.title_english || "Unknown title",
-          image:
-            anime.images?.jpg?.large_image_url ||
-            anime.images?.jpg?.image_url ||
-            anime.images?.webp?.large_image_url ||
-            "",
-        };
-        renderSelectedAnime();
+        applySelectedAnime(anime);
       });
     });
   }
@@ -665,6 +775,35 @@
     heroChips.innerHTML = chips;
   }
 
+  function renderAdminPanel() {
+    adminPanel.classList.toggle("is-hidden", !state.isAdmin);
+
+    if (!state.isAdmin) {
+      adminGrid.innerHTML = "";
+      return;
+    }
+
+    if (!state.adminProfiles.length) {
+      adminGrid.innerHTML =
+        '<div class="empty-state">No profile data available for admin view yet.</div>';
+      return;
+    }
+
+    adminGrid.innerHTML = state.adminProfiles
+      .map(function (profile) {
+        return [
+          '<article class="admin-card">',
+          '<p class="admin-card__title">@' + escapeHtml(profile.username) + "</p>",
+          '<p class="admin-card__meta">Created: ' + escapeHtml(formatDate(profile.created_at)) + "<br />Updated: " + escapeHtml(formatDate(profile.updated_at || profile.created_at)) + "</p>",
+          '<p class="admin-card__meta">Bio: ' + escapeHtml(profile.bio || "No bio yet.") + "</p>",
+          '<p class="admin-card__meta">Favorite anime: ' + escapeHtml(profile.favorite_anime || "Not selected") + "</p>",
+          '<p class="admin-card__meta">Avatar saved: ' + escapeHtml(profile.avatar_image_url ? "Yes" : "No") + "</p>",
+          "</article>",
+        ].join("");
+      })
+      .join("");
+  }
+
   function setTab(tabName) {
     state.activeTab = tabName;
     tabButtons.forEach(function (button) {
@@ -678,6 +817,45 @@
   function clearSelectedAnime() {
     state.selectedAnime = null;
     renderSelectedAnime();
+  }
+
+  function applySelectedAnime(anime) {
+    state.selectedAnime = {
+      malId: anime.mal_id,
+      title: anime.title || anime.title_english || "Unknown title",
+      image:
+        anime.images?.jpg?.large_image_url ||
+        anime.images?.jpg?.image_url ||
+        anime.images?.webp?.large_image_url ||
+        "",
+    };
+    animeSearchInput.value = state.selectedAnime.title;
+    renderSelectedAnime();
+  }
+
+  async function handleAnimeSuggest() {
+    clearTimeout(animeSuggestionTimer);
+    const query = String(animeSearchInput.value || "").trim();
+
+    if (!query) {
+      state.animeSuggestions = [];
+      renderAnimeSuggestions();
+      return;
+    }
+
+    animeSuggestionTimer = setTimeout(async function () {
+      try {
+        const response = await fetch(
+          JIKAN_BASE_URL + "/anime?q=" + encodeURIComponent(query) + "&limit=5&sfw"
+        );
+        const payload = await response.json();
+        state.animeSuggestions = Array.isArray(payload.data) ? payload.data : [];
+        renderAnimeSuggestions();
+      } catch {
+        state.animeSuggestions = [];
+        renderAnimeSuggestions();
+      }
+    }, 280);
   }
 
   function profileToAnime(profile) {
@@ -697,6 +875,24 @@
       .trim()
       .toLowerCase()
       .replace(/[^a-z0-9_]/g, "");
+  }
+
+  function isCurrentUserAdmin() {
+    const email = state.session?.user?.email || "";
+    const adminEmail = window.APP_CONFIG?.adminEmail || "";
+    return Boolean(email && adminEmail && email.toLowerCase() === adminEmail.toLowerCase());
+  }
+
+  function formatDate(value) {
+    if (!value) {
+      return "Unknown";
+    }
+
+    try {
+      return new Date(value).toLocaleString();
+    } catch {
+      return String(value);
+    }
   }
 
   function randomFallbackImage(seed) {

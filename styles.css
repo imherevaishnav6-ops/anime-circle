@@ -348,6 +348,42 @@ textarea {
   gap: 10px;
 }
 
+.anime-suggestions {
+  display: grid;
+  gap: 8px;
+}
+
+.suggestion-card {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+}
+
+.suggestion-card img {
+  width: 52px;
+  height: 70px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.suggestion-card__title {
+  margin: 0 0 4px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.suggestion-card__meta {
+  margin: 0;
+  font-size: 0.86rem;
+  color: var(--muted);
+}
+
 .selected-anime {
   min-height: 124px;
   padding: 16px;
@@ -516,6 +552,10 @@ textarea {
   margin-top: 24px;
 }
 
+.admin-panel {
+  margin-top: 24px;
+}
+
 .member-search {
   width: min(280px, 100%);
 }
@@ -524,6 +564,32 @@ textarea {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
   gap: 18px;
+}
+
+.admin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.admin-card {
+  padding: 18px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.admin-card__title {
+  margin: 0 0 8px;
+  font-size: 1.06rem;
+  font-weight: 800;
+}
+
+.admin-card__meta {
+  margin: 0 0 10px;
+  font-size: 0.9rem;
+  color: var(--muted);
+  line-height: 1.6;
 }
 
 .member-card {

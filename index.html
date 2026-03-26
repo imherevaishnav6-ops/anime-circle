@@ -149,6 +149,7 @@
                   Search
                 </button>
               </div>
+              <div id="anime-suggestions" class="anime-suggestions"></div>
               <div id="selected-anime" class="selected-anime is-empty">
                 <p class="selected-anime__empty">No anime selected yet.</p>
               </div>
@@ -174,6 +175,17 @@
           <input id="member-search" class="member-search" type="text" placeholder="Search members or anime..." />
         </div>
         <div id="member-grid" class="member-grid"></div>
+      </section>
+
+      <section id="admin-panel" class="panel admin-panel is-hidden">
+        <div class="panel__header">
+          <p class="panel__eyebrow">Admin</p>
+          <h2>Profile control room</h2>
+        </div>
+        <p class="hero__note">
+          This section is only for the configured admin account and shows the saved profile details for moderation and checking.
+        </p>
+        <div id="admin-grid" class="admin-grid"></div>
       </section>
     </div>
 
