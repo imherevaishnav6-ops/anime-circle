@@ -4,9 +4,18 @@ create table if not exists public.profiles (
   display_name text not null,
   favorite_anime text,
   anime_reason text,
+  bio text,
+  avatar_image_url text,
+  favorite_anime_image_url text,
+  favorite_anime_mal_id integer,
   created_at timestamptz not null default timezone('utc', now()),
   updated_at timestamptz not null default timezone('utc', now())
 );
+
+alter table public.profiles add column if not exists bio text;
+alter table public.profiles add column if not exists avatar_image_url text;
+alter table public.profiles add column if not exists favorite_anime_image_url text;
+alter table public.profiles add column if not exists favorite_anime_mal_id integer;
 
 alter table public.profiles enable row level security;
 
@@ -21,7 +30,7 @@ begin
   values (
     new.id,
     lower(coalesce(new.raw_user_meta_data ->> 'username', split_part(new.email, '@', 1))),
-    coalesce(new.raw_user_meta_data ->> 'display_name', split_part(new.email, '@', 1))
+    lower(coalesce(new.raw_user_meta_data ->> 'username', split_part(new.email, '@', 1)))
   );
   return new;
 end;

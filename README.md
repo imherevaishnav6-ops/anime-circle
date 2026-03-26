@@ -18,10 +18,10 @@ Anime Circle is a public-ready anime club website for you and your friends. Ever
 
 ## What the app does
 
-- Creates accounts with display name, username, email, and password
+- Creates accounts with username, email, and password
 - Logs users in with Supabase Auth
-- Saves each member's favorite anime and their reason to a cloud database
-- Shows a shared member feed for the friend group
+- Lets users add a bio, choose an anime avatar, and pick favorite anime with poster art
+- Shows a richer shared member feed for the friend group
 
 ## Important note about browser storage
 
@@ -51,8 +51,13 @@ window.APP_CONFIG = {
 3. Deploy it as a static site.
 4. After deployment, open the public Vercel URL and test sign-up, login, and favorite anime saving.
 
+## Upgrade notes
+
+- The app now uses Jikan's public anime API for anime posters and character avatars. Jikan docs: [Jikan REST API Docs](https://docs.api.jikan.moe/)
+- Existing projects should re-run [supabase/schema.sql](C:\Users\vaishnav chowdary\OneDrive\Documents\New project\supabase\schema.sql) so the new bio, avatar, and poster columns are added.
+- Login session persistence is enabled, so users stay signed in after refresh unless they log out.
+
 ## Notes
 
 - Anime data is stored online in Supabase, not in local files
-- Login sessions are kept only in memory during the current tab session
-- If you want persistent login across refreshes, change `persistSession` to `true` in [app.js](C:\Users\vaishnav chowdary\OneDrive\Documents\New project\app.js)
+- The frontend pulls anime and character images from public Jikan endpoints

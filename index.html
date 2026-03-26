@@ -14,18 +14,20 @@
   </head>
   <body>
     <div class="page-shell">
-      <header class="hero">
+      <header class="hero" id="hero">
+        <div class="hero__overlay"></div>
         <div class="hero__content">
           <p class="eyebrow">Anime Circle</p>
-          <h1>Your friend group, one anime clubhouse.</h1>
+          <h1>The anime squad upgrade is here.</h1>
           <p class="hero__copy">
-            Sign up, log in, and share the anime you love most with your circle.
-            Everyone in the group can see each member's current favorite and the reason behind it.
+            Build your anime identity, choose a character avatar, drop your bio,
+            and show the series that defines your taste. Real anime art powers the whole vibe.
           </p>
+          <div class="hero__chips" id="hero-chips"></div>
         </div>
 
         <aside class="hero__card">
-          <p class="hero__label">Live Club Stats</p>
+          <p class="hero__label">Club Pulse</p>
           <div class="stat-row">
             <span>Members</span>
             <strong id="member-count">0</strong>
@@ -34,8 +36,12 @@
             <span>Favorites shared</span>
             <strong id="favorite-count">0</strong>
           </div>
+          <div class="stat-row">
+            <span>Avatars picked</span>
+            <strong id="avatar-count">0</strong>
+          </div>
           <p class="hero__note">
-            This version is built for real deployment with a cloud backend instead of local file storage.
+            Search anime, pick posters, add a short bio, and make the group page feel alive.
           </p>
         </aside>
       </header>
@@ -44,7 +50,7 @@
         <section class="panel auth-panel">
           <div class="panel__header">
             <p class="panel__eyebrow">Auth</p>
-            <h2>Join the club</h2>
+            <h2>Join the squad</h2>
           </div>
 
           <div class="tabs">
@@ -54,16 +60,12 @@
 
           <form id="register-form" class="auth-form">
             <label>
-              Display name
-              <input name="displayName" type="text" maxlength="40" placeholder="Hinata" required />
-            </label>
-            <label>
               Username
-              <input name="username" type="text" maxlength="24" placeholder="hinatafan" required />
+              <input name="username" type="text" maxlength="24" placeholder="zoro1" required />
             </label>
             <label>
               Email
-              <input name="email" type="email" placeholder="hinata@example.com" required />
+              <input name="email" type="email" placeholder="you@example.com" required />
             </label>
             <label>
               Password
@@ -75,7 +77,7 @@
           <form id="login-form" class="auth-form is-hidden">
             <label>
               Email
-              <input name="email" type="email" placeholder="hinata@example.com" required />
+              <input name="email" type="email" placeholder="you@example.com" required />
             </label>
             <label>
               Password
@@ -85,56 +87,91 @@
           </form>
 
           <p id="auth-message" class="message" aria-live="polite"></p>
+
+          <div class="mini-panel">
+            <p class="mini-panel__title">Upgrade ideas</p>
+            <ul class="mini-list">
+              <li>Persistent login across refresh</li>
+              <li>Anime poster search powered by Jikan</li>
+              <li>Profile bios and anime character avatars</li>
+              <li>Better community feed cards</li>
+            </ul>
+          </div>
         </section>
 
         <section class="panel profile-panel">
           <div class="panel__header">
-            <p class="panel__eyebrow">Your Pick</p>
-            <h2>Favorite anime</h2>
+            <p class="panel__eyebrow">Profile</p>
+            <h2>Your anime identity</h2>
           </div>
 
           <div id="session-card" class="session-card is-logged-out">
             <p class="session-card__title">Not logged in yet</p>
             <p class="session-card__copy">
-              Sign in to add your favorite anime and see the shared club feed.
+              Log in to set your avatar, write a bio, and choose your favorite anime with poster art.
             </p>
           </div>
 
-          <form id="favorite-form" class="favorite-form">
+          <form id="profile-form" class="profile-form">
             <label>
-              Favorite anime
-              <input
-                name="favoriteAnime"
-                type="text"
-                maxlength="80"
-                placeholder="Fullmetal Alchemist: Brotherhood"
-                disabled
-                required
-              />
-            </label>
-            <label>
-              Why is it your favorite?
+              Bio
               <textarea
-                name="animeReason"
-                maxlength="240"
-                placeholder="Say what makes it special for you..."
+                name="bio"
+                maxlength="180"
+                placeholder="What kind of anime fan are you?"
                 disabled
               ></textarea>
             </label>
+
+            <div class="field-block">
+              <div class="field-header">
+                <span>Avatar</span>
+                <button id="reload-avatars" class="inline-button" type="button" disabled>Refresh picks</button>
+              </div>
+              <div id="avatar-grid" class="avatar-grid is-disabled"></div>
+            </div>
+
+            <div class="field-block">
+              <div class="field-header">
+                <span>Favorite anime</span>
+                <button id="clear-anime" class="inline-button" type="button" disabled>Clear</button>
+              </div>
+              <div class="anime-search">
+                <input
+                  id="anime-search-input"
+                  name="animeSearch"
+                  type="text"
+                  maxlength="80"
+                  placeholder="Search anime title..."
+                  disabled
+                />
+                <button id="anime-search-button" class="primary-button primary-button--small" type="button" disabled>
+                  Search
+                </button>
+              </div>
+              <div id="selected-anime" class="selected-anime is-empty">
+                <p class="selected-anime__empty">No anime selected yet.</p>
+              </div>
+              <div id="anime-results" class="anime-results"></div>
+            </div>
+
             <div class="action-row">
-              <button type="submit" class="primary-button" disabled>Save favorite</button>
+              <button id="save-profile-button" type="submit" class="primary-button" disabled>Save profile</button>
               <button id="logout-button" type="button" class="ghost-button" disabled>Logout</button>
             </div>
           </form>
 
-          <p id="favorite-message" class="message" aria-live="polite"></p>
+          <p id="profile-message" class="message" aria-live="polite"></p>
         </section>
       </main>
 
       <section class="panel members-panel">
-        <div class="panel__header">
-          <p class="panel__eyebrow">Friend Feed</p>
-          <h2>Club members and their anime picks</h2>
+        <div class="panel__header panel__header--split">
+          <div>
+            <p class="panel__eyebrow">Friend Feed</p>
+            <h2>The squad's anime cards</h2>
+          </div>
+          <input id="member-search" class="member-search" type="text" placeholder="Search members or anime..." />
         </div>
         <div id="member-grid" class="member-grid"></div>
       </section>
